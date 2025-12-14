@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.recall.app.ui.screens.capture.CaptureScreen
 import com.recall.app.ui.screens.home.HomeScreen
 import com.recall.app.ui.screens.notedetail.NoteDetailScreen
 
@@ -43,7 +44,9 @@ fun RecallNavGraph(
         }
 
         composable(Screen.Capture.route) {
-            // CaptureScreen will be implemented
+            CaptureScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.DailyRecall.route) {
