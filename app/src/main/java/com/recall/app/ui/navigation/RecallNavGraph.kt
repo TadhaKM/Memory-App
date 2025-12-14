@@ -8,8 +8,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.recall.app.ui.screens.capture.CaptureScreen
+import com.recall.app.ui.screens.dailyrecall.DailyRecallScreen
 import com.recall.app.ui.screens.home.HomeScreen
 import com.recall.app.ui.screens.notedetail.NoteDetailScreen
+import com.recall.app.ui.screens.search.SearchScreen
 
 @Composable
 fun RecallNavGraph(
@@ -26,6 +28,12 @@ fun RecallNavGraph(
                 },
                 onNavigateToCapture = {
                     navController.navigate(Screen.Capture.route)
+                },
+                onNavigateToSearch = {
+                    navController.navigate(Screen.Search.route)
+                },
+                onNavigateToDailyRecall = {
+                    navController.navigate(Screen.DailyRecall.route)
                 }
             )
         }
@@ -50,11 +58,21 @@ fun RecallNavGraph(
         }
 
         composable(Screen.DailyRecall.route) {
-            // DailyRecallScreen will be implemented
+            DailyRecallScreen(
+                onNavigateToNoteDetail = { noteId ->
+                    navController.navigate(Screen.NoteDetail.createRoute(noteId))
+                },
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.Search.route) {
-            // SearchScreen will be implemented
+            SearchScreen(
+                onNavigateToNoteDetail = { noteId ->
+                    navController.navigate(Screen.NoteDetail.createRoute(noteId))
+                },
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.Settings.route) {

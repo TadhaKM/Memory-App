@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.work.*
 import com.recall.app.core.util.Constants
 import com.recall.app.sync.workers.ProcessAiWorker
+import com.recall.app.sync.workers.ResurfaceScoreWorker
 import com.recall.app.sync.workers.SyncNotesWorker
 import com.recall.app.sync.workers.UploadAttachmentsWorker
 import timber.log.Timber
+import java.util.Calendar
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -87,12 +89,52 @@ class SyncScheduler @Inject constructor(
     }
 
     /**
+     * Schedule nightly resurface score calculation at 2:30 AM
+     */
+    fun scheduleNightlyResurfacing() {
+        val currentTime = Calendar.getInstance()
+        val targetTime = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 2)
+            set(Calendar.MINUTE, 30)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+
+            // If target time has passed for today, schedule for tomorrow
+            if (before(currentTime)) {
+                add(Calendar.DAY_OF_MONTH, 1)
+            }
+        }
+
+        val initialDelayMillis = targetTime.timeInMillis - currentTime.timeInMillis
+
+        val resurfaceWork = PeriodicWorkRequestBuilder<ResurfaceScoreWorker>(
+            24, TimeUnit.HOURS
+        )
+            .setInitialDelay(initialDelayMillis, TimeUnit.MILLISECONDS)
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiresBatteryNotLow(true)
+                    .build()
+            )
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            "nightly_resurface_scores",
+            ExistingPeriodicWorkPolicy.KEEP,
+            resurfaceWork
+        )
+
+        Timber.d("Scheduled nightly resurface score calculation at 2:30 AM (initial delay: ${initialDelayMillis}ms)")
+    }
+
+    /**
      * Cancel all sync work
      */
     fun cancelAllSync() {
         workManager.cancelUniqueWork(Constants.SYNC_NOTES_WORK)
         workManager.cancelUniqueWork(Constants.UPLOAD_ATTACHMENTS_WORK)
         workManager.cancelUniqueWork("periodic_sync")
+        workManager.cancelUniqueWork("nightly_resurface_scores")
         Timber.d("Cancelled all sync work")
     }
 
