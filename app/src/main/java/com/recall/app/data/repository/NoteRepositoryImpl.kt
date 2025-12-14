@@ -6,6 +6,7 @@ import com.recall.app.data.local.entity.ResurfaceStateEntity
 import com.recall.app.data.mapper.*
 import com.recall.app.domain.model.*
 import com.recall.app.domain.repository.NoteRepository
+import com.recall.app.sync.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -19,7 +20,8 @@ class NoteRepositoryImpl @Inject constructor(
     private val attachmentDao: AttachmentDao,
     private val aiMetadataDao: AiMetadataDao,
     private val resurfaceStateDao: ResurfaceStateDao,
-    private val searchDao: SearchDao
+    private val searchDao: SearchDao,
+    private val syncScheduler: SyncScheduler
 ) : NoteRepository {
 
     override fun getAllNotes(archived: Boolean): Flow<List<Note>> {
@@ -61,6 +63,9 @@ class NoteRepositoryImpl @Inject constructor(
                 )
             )
 
+            // Trigger sync
+            syncScheduler.scheduleSyncChain()
+
             Timber.d("Created note: ${note.id}")
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -72,6 +77,10 @@ class NoteRepositoryImpl @Inject constructor(
     override suspend fun updateNote(note: Note): Result<Unit> {
         return try {
             noteDao.updateNote(note.toEntity())
+
+            // Trigger sync
+            syncScheduler.scheduleSyncChain()
+
             Timber.d("Updated note: ${note.id}")
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -127,6 +136,10 @@ class NoteRepositoryImpl @Inject constructor(
     override suspend fun addAttachment(attachment: Attachment): Result<Unit> {
         return try {
             attachmentDao.insertAttachment(attachment.toEntity())
+
+            // Trigger sync to upload attachment
+            syncScheduler.scheduleSyncChain()
+
             Timber.d("Added attachment: ${attachment.id} to note: ${attachment.noteId}")
             Result.Success(Unit)
         } catch (e: Exception) {
