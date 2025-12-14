@@ -14,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.recall.app.core.util.toDateTimeString
 import com.recall.app.domain.model.Note
+import com.recall.app.domain.model.NoteType
+import com.recall.app.ui.components.AiMetadataCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,6 +89,10 @@ fun NoteDetailScreen(
                 NoteContent(
                     note = state.note,
                     onTextChanged = { viewModel.updateNoteText(it) },
+                    onReRunAi = { /* TODO: Implement re-run AI */ },
+                    onUpdateSummary = { /* TODO: Implement update summary */ },
+                    onUpdateType = { /* TODO: Implement update type */ },
+                    onToggleActionItem = { _, _ -> /* TODO: Implement toggle action item */ },
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -123,6 +129,10 @@ fun NoteDetailScreen(
 fun NoteContent(
     note: Note,
     onTextChanged: (String) -> Unit,
+    onReRunAi: () -> Unit,
+    onUpdateSummary: (String) -> Unit,
+    onUpdateType: (NoteType) -> Unit,
+    onToggleActionItem: (Int, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var text by remember(note.id) { mutableStateOf(note.rawText ?: "") }
@@ -161,44 +171,14 @@ fun NoteContent(
 
         // AI Metadata
         note.aiMetadata?.let { aiMetadata ->
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "AI Analysis",
-                        style = MaterialTheme.typography.titleSmall
-                    )
-
-                    aiMetadata.summary?.let { summary ->
-                        Text(
-                            text = summary,
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 3,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    aiMetadata.type?.let { type ->
-                        SuggestionChip(
-                            onClick = { },
-                            label = { Text(type.name) }
-                        )
-                    }
-
-                    if (aiMetadata.topics.isNotEmpty()) {
-                        Text(
-                            text = "Topics: ${aiMetadata.topics.joinToString(", ")}",
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
-                }
-            }
+            AiMetadataCard(
+                aiMetadata = aiMetadata,
+                isProcessing = false, // TODO: Add processing state
+                onReRunAi = onReRunAi,
+                onUpdateSummary = onUpdateSummary,
+                onUpdateType = onUpdateType,
+                onToggleActionItem = onToggleActionItem
+            )
         }
 
         // Note text

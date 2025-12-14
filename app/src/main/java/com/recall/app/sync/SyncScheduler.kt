@@ -3,6 +3,7 @@ package com.recall.app.sync
 import android.content.Context
 import androidx.work.*
 import com.recall.app.core.util.Constants
+import com.recall.app.sync.workers.ProcessAiWorker
 import com.recall.app.sync.workers.SyncNotesWorker
 import com.recall.app.sync.workers.UploadAttachmentsWorker
 import timber.log.Timber
@@ -18,7 +19,7 @@ class SyncScheduler @Inject constructor(
 
     /**
      * Schedule a one-time sync chain:
-     * Upload Attachments → Sync Notes
+     * Upload Attachments → Sync Notes → Process AI
      */
     fun scheduleSyncChain() {
         val uploadAttachmentsWork = OneTimeWorkRequestBuilder<UploadAttachmentsWorker>()
@@ -39,16 +40,26 @@ class SyncScheduler @Inject constructor(
             )
             .build()
 
-        // Chain: Upload attachments THEN sync notes
+        val processAiWork = OneTimeWorkRequestBuilder<ProcessAiWorker>()
+            .setConstraints(getSyncConstraints())
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                Constants.SYNC_BACKOFF_DELAY_MS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+
+        // Chain: Upload attachments → Sync notes → Process AI
         workManager.beginUniqueWork(
             Constants.SYNC_NOTES_WORK,
             ExistingWorkPolicy.KEEP,
             uploadAttachmentsWork
         )
             .then(syncNotesWork)
+            .then(processAiWork)
             .enqueue()
 
-        Timber.d("Scheduled sync chain")
+        Timber.d("Scheduled sync chain with AI processing")
     }
 
     /**
