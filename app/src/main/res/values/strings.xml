@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Recall</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_daily_recall">Daily Recall</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Actions -->
+    <string name="action_capture">Capture</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_archive">Archive</string>
+    <string name="action_pin">Pin</string>
+    <string name="action_share">Share</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_search">Search</string>
+
+    <!-- Note types -->
+    <string name="type_task">Task</string>
+    <string name="type_idea">Idea</string>
+    <string name="type_reference">Reference</string>
+    <string name="type_journal">Journal</string>
+    <string name="type_question">Question</string>
+    <string name="type_quote">Quote</string>
+    <string name="type_other">Other</string>
+
+    <!-- Filters -->
+    <string name="filter_all">All</string>
+    <string name="filter_tasks">Tasks</string>
+    <string name="filter_ideas">Ideas</string>
+    <string name="filter_references">References</string>
+    <string name="filter_audio">Audio</string>
+    <string name="filter_images">Images</string>
+    <string name="filter_archived">Archived</string>
+
+    <!-- Capture -->
+    <string name="hint_note_text">What\'s on your mind?</string>
+    <string name="record_audio">Record audio</string>
+    <string name="take_photo">Take photo</string>
+    <string name="choose_image">Choose image</string>
+
+    <!-- Settings -->
+    <string name="settings_ai_processing">AI Processing</string>
+    <string name="settings_sync">Sync</string>
+    <string name="settings_daily_recall_time">Daily Recall Time</string>
+    <string name="settings_export">Export Data</string>
+    <string name="settings_delete_account">Delete Account</string>
+
+    <!-- Permissions -->
+    <string name="permission_microphone_rationale">Microphone permission is needed to record audio notes</string>
+    <string name="permission_camera_rationale">Camera permission is needed to capture images</string>
+    <string name="permission_notification_rationale">Notification permission is needed for Daily Recall reminders</string>
+</resources>
