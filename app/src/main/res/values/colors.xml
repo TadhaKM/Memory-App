@@ -7,3 +7,6 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Launcher icon colors -->
+    <color name="ic_launcher_background">#6200EE</color>
