@@ -192,7 +192,7 @@ fun CaptureScreen(
                 // Audio button
                 Button(
                     onClick = {
-                        if (permissionsState.permissions[0].hasPermission) {
+                        if (permissionsState.permissions[0].status.isGranted) {
                             if (uiState.isRecording) {
                                 val file = audioRecorder.stopRecording()
                                 viewModel.stopRecording()
@@ -238,7 +238,7 @@ fun CaptureScreen(
                 // Camera button
                 OutlinedButton(
                     onClick = {
-                        if (permissionsState.permissions[1].hasPermission) {
+                        if (permissionsState.permissions[1].status.isGranted) {
                             capturedImageUri = imageManager.createImageUri()
                             cameraLauncher.launch(capturedImageUri!!)
                         } else {

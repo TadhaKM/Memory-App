@@ -32,9 +32,7 @@ class StorageDataSource @Inject constructor(
             val bucket = storage.from(SupabaseConfig.ATTACHMENTS_BUCKET)
 
             // Upload file
-            bucket.upload(path, file.readBytes()) {
-                upsert = true
-            }
+            bucket.upload(path, file.readBytes(), upsert = true)
 
             Timber.d("Uploaded attachment: $path (${file.length()} bytes)")
             Result.success(path)
