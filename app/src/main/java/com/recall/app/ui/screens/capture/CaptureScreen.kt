@@ -26,6 +26,7 @@ import com.recall.app.core.ocr.OcrResult
 import com.recall.app.core.util.generateUUID
 import com.recall.app.domain.model.Attachment
 import com.recall.app.domain.model.AttachmentType
+import com.recall.app.domain.model.NoteSource
 import com.recall.app.domain.model.SyncState
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -34,6 +35,8 @@ import timber.log.Timber
 @Composable
 fun CaptureScreen(
     onNavigateBack: () -> Unit,
+    initialText: String? = null,
+    initialImageUris: List<Uri> = emptyList(),
     viewModel: CaptureViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -48,6 +51,44 @@ fun CaptureScreen(
     var capturedImageUri by remember { mutableStateOf<Uri?>(null) }
     var showOcrDialog by remember { mutableStateOf(false) }
     var ocrText by remember { mutableStateOf("") }
+    var hasProcessedInitialContent by remember { mutableStateOf(false) }
+
+    // Handle initial shared content
+    LaunchedEffect(initialText, initialImageUris) {
+        if (!hasProcessedInitialContent) {
+            hasProcessedInitialContent = true
+
+            // Handle shared text
+            if (!initialText.isNullOrBlank()) {
+                viewModel.updateText(initialText)
+                viewModel.setSource(NoteSource.SHARE)
+            }
+
+            // Handle shared images
+            if (initialImageUris.isNotEmpty()) {
+                viewModel.setSource(NoteSource.SHARE)
+                initialImageUris.forEach { uri ->
+                    try {
+                        val file = imageManager.saveImage(uri)
+                        if (file != null) {
+                            val attachment = Attachment(
+                                id = generateUUID(),
+                                noteId = "",
+                                type = AttachmentType.IMAGE,
+                                mimeType = "image/jpeg",
+                                localUri = file.absolutePath,
+                                sizeBytes = file.length(),
+                                syncState = SyncState.LOCAL_ONLY
+                            )
+                            viewModel.addAttachment(attachment)
+                        }
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to process shared image: $uri")
+                    }
+                }
+            }
+        }
+    }
 
     // Permissions
     val permissionsState = rememberMultiplePermissionsState(

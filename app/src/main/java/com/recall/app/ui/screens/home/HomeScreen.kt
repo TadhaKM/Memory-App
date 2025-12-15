@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +29,7 @@ fun HomeScreen(
     onNavigateToCapture: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToDailyRecall: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -45,6 +47,9 @@ fun HomeScreen(
                     }
                     IconButton(onClick = { viewModel.onToggleArchived() }) {
                         Icon(Icons.Default.Archive, contentDescription = "Archive")
+                    }
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
                 }
             )

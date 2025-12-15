@@ -1,8 +1,10 @@
 package com.recall.app.ui.screens.notedetail
 
+import android.content.Intent
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.recall.app.core.export.NoteExporter
 import com.recall.app.domain.model.Note
 import com.recall.app.domain.model.SyncState
 import com.recall.app.domain.repository.NoteRepository
@@ -15,6 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NoteDetailViewModel @Inject constructor(
     private val noteRepository: NoteRepository,
+    private val noteExporter: NoteExporter,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -76,6 +79,24 @@ class NoteDetailViewModel @Inject constructor(
     fun deleteNote() {
         viewModelScope.launch {
             noteRepository.deleteNote(noteId)
+        }
+    }
+
+    fun exportNote(format: NoteExporter.ExportFormat): Intent? {
+        val currentState = _uiState.value
+        return if (currentState is NoteDetailUiState.Success) {
+            noteExporter.exportNote(currentState.note, format)
+        } else {
+            null
+        }
+    }
+
+    fun getNoteAsText(): String? {
+        val currentState = _uiState.value
+        return if (currentState is NoteDetailUiState.Success) {
+            noteExporter.getNoteAsText(currentState.note)
+        } else {
+            null
         }
     }
 }
