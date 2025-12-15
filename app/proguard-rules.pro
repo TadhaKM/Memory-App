@@ -32,3 +32,11 @@
 -keepclasseswithmembers class com.recall.app.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
+
+# Sentry
+-keep class io.sentry.** { *; }
+-dontwarn io.sentry.**
+
+# PostHog
+-keep class com.posthog.** { *; }
+-dontwarn com.posthog.**

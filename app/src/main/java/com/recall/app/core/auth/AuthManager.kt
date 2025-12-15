@@ -1,7 +1,7 @@
 package com.recall.app.core.auth
 
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.gotrue.Auth
+import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.providers.builtin.Email
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +14,7 @@ import javax.inject.Singleton
 class AuthManager @Inject constructor(
     private val supabaseClient: SupabaseClient
 ) {
-    private val auth: Auth = supabaseClient.auth
+    private val auth get() = supabaseClient.auth
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()

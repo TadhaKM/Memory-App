@@ -142,6 +142,12 @@ dependencies {
     // Accompanist (Permissions)
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
 
+    // Sentry (Crash Reporting)
+    implementation("io.sentry:sentry-android:7.3.0")
+
+    // PostHog (Analytics)
+    implementation("com.posthog:posthog-android:3.1.7")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")

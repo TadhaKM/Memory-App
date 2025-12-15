@@ -22,7 +22,6 @@ class OcrProcessor @Inject constructor() {
             val blocks = visionText.textBlocks.map { block ->
                 TextBlock(
                     text = block.text,
-                    confidence = block.confidence ?: 0f,
                     boundingBox = block.boundingBox
                 )
             }
@@ -44,7 +43,6 @@ class OcrProcessor @Inject constructor() {
             val blocks = visionText.textBlocks.map { block ->
                 TextBlock(
                     text = block.text,
-                    confidence = block.confidence ?: 0f,
                     boundingBox = block.boundingBox
                 )
             }
@@ -69,6 +67,5 @@ sealed class OcrResult {
 
 data class TextBlock(
     val text: String,
-    val confidence: Float,
     val boundingBox: android.graphics.Rect?
 )

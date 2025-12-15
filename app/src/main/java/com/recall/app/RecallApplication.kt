@@ -3,6 +3,7 @@ package com.recall.app
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.recall.app.core.analytics.AnalyticsManager
 import com.recall.app.sync.SyncScheduler
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
@@ -17,6 +18,9 @@ class RecallApplication : Application(), Configuration.Provider {
     @Inject
     lateinit var syncScheduler: SyncScheduler
 
+    @Inject
+    lateinit var analyticsManager: AnalyticsManager
+
     override fun onCreate() {
         super.onCreate()
 
@@ -26,6 +30,10 @@ class RecallApplication : Application(), Configuration.Provider {
         }
 
         Timber.d("Recall application started")
+
+        // Initialize analytics and crash reporting
+        analyticsManager.initialize()
+        Timber.d("Analytics initialized")
 
         // Schedule nightly resurface score calculation
         syncScheduler.scheduleNightlyResurfacing()

@@ -1,5 +1,9 @@
 package com.recall.app.ui.screens.notedetail
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -9,9 +13,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.recall.app.core.export.NoteExporter
 import com.recall.app.core.util.toDateTimeString
 import com.recall.app.domain.model.Note
 import com.recall.app.domain.model.NoteType
@@ -25,7 +30,20 @@ fun NoteDetailScreen(
     viewModel: NoteDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showExportMenu by remember { mutableStateOf(false) }
+    var showSnackbar by remember { mutableStateOf(false) }
+    var snackbarMessage by remember { mutableStateOf("") }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(showSnackbar) {
+        if (showSnackbar) {
+            snackbarHostState.showSnackbar(snackbarMessage)
+            showSnackbar = false
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -39,6 +57,54 @@ fun NoteDetailScreen(
                 actions = {
                     when (val state = uiState) {
                         is NoteDetailUiState.Success -> {
+                            // Copy to clipboard
+                            IconButton(onClick = {
+                                viewModel.getNoteAsText()?.let { text ->
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    clipboard.setPrimaryClip(ClipData.newPlainText("Note", text))
+                                    snackbarMessage = "Copied to clipboard"
+                                    showSnackbar = true
+                                }
+                            }) {
+                                Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
+                            }
+
+                            // Export/Share menu
+                            Box {
+                                IconButton(onClick = { showExportMenu = true }) {
+                                    Icon(Icons.Default.Share, contentDescription = "Share")
+                                }
+                                DropdownMenu(
+                                    expanded = showExportMenu,
+                                    onDismissRequest = { showExportMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Export as Text") },
+                                        onClick = {
+                                            viewModel.exportNote(NoteExporter.ExportFormat.TXT)?.let { intent ->
+                                                context.startActivity(Intent.createChooser(intent, "Share note"))
+                                            }
+                                            showExportMenu = false
+                                        },
+                                        leadingIcon = {
+                                            Icon(Icons.Default.Description, contentDescription = null)
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Export as Markdown") },
+                                        onClick = {
+                                            viewModel.exportNote(NoteExporter.ExportFormat.MARKDOWN)?.let { intent ->
+                                                context.startActivity(Intent.createChooser(intent, "Share note"))
+                                            }
+                                            showExportMenu = false
+                                        },
+                                        leadingIcon = {
+                                            Icon(Icons.Default.Code, contentDescription = null)
+                                        }
+                                    )
+                                }
+                            }
+
                             IconButton(onClick = { viewModel.togglePin() }) {
                                 Icon(
                                     if (state.note.pinned) Icons.Filled.PushPin else Icons.Default.PushPin,
@@ -56,7 +122,8 @@ fun NoteDetailScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         when (val state = uiState) {
             is NoteDetailUiState.Loading -> {

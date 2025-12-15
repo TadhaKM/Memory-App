@@ -1,5 +1,6 @@
 package com.recall.app.ui.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -12,14 +13,18 @@ import com.recall.app.ui.screens.dailyrecall.DailyRecallScreen
 import com.recall.app.ui.screens.home.HomeScreen
 import com.recall.app.ui.screens.notedetail.NoteDetailScreen
 import com.recall.app.ui.screens.search.SearchScreen
+import com.recall.app.ui.screens.settings.SettingsScreen
 
 @Composable
 fun RecallNavGraph(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    startDestination: String = Screen.Home.route,
+    sharedText: String? = null,
+    sharedImageUris: List<Uri> = emptyList()
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route
+        startDestination = startDestination
     ) {
         composable(Screen.Home.route) {
             HomeScreen(
@@ -27,13 +32,16 @@ fun RecallNavGraph(
                     navController.navigate(Screen.NoteDetail.createRoute(noteId))
                 },
                 onNavigateToCapture = {
-                    navController.navigate(Screen.Capture.route)
+                    navController.navigate(Screen.Capture.BASE_ROUTE)
                 },
                 onNavigateToSearch = {
                     navController.navigate(Screen.Search.route)
                 },
                 onNavigateToDailyRecall = {
                     navController.navigate(Screen.DailyRecall.route)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route)
                 }
             )
         }
@@ -51,9 +59,13 @@ fun RecallNavGraph(
             )
         }
 
-        composable(Screen.Capture.route) {
+        composable(
+            route = Screen.Capture.BASE_ROUTE,
+        ) {
             CaptureScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                initialText = sharedText,
+                initialImageUris = sharedImageUris
             )
         }
 
@@ -76,7 +88,9 @@ fun RecallNavGraph(
         }
 
         composable(Screen.Settings.route) {
-            // SettingsScreen will be implemented
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

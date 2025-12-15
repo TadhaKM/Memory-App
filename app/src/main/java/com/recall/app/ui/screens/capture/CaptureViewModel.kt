@@ -25,6 +25,7 @@ class CaptureViewModel @Inject constructor(
     val textInput: StateFlow<String> = _textInput.asStateFlow()
 
     private var currentNoteId: String? = null
+    private var currentSource: NoteSource = NoteSource.MANUAL
 
     init {
         // Auto-save with 600ms debounce
@@ -44,6 +45,10 @@ class CaptureViewModel @Inject constructor(
         _textInput.value = text
     }
 
+    fun setSource(source: NoteSource) {
+        currentSource = source
+    }
+
     private suspend fun saveOrUpdateNote(text: String) {
         try {
             val noteId = currentNoteId ?: generateUUID().also { currentNoteId = it }
@@ -54,7 +59,7 @@ class CaptureViewModel @Inject constructor(
                 createdAt = System.currentTimeMillis(),
                 updatedAt = System.currentTimeMillis(),
                 rawText = text,
-                source = NoteSource.MANUAL,
+                source = currentSource,
                 syncState = SyncState.LOCAL_ONLY,
                 aiState = AiState.PENDING
             )
@@ -74,16 +79,23 @@ class CaptureViewModel @Inject constructor(
                 // Ensure we have a note first
                 val noteId = currentNoteId ?: generateUUID().also {
                     currentNoteId = it
+                    // Determine source: use current source if already set (e.g., SHARE),
+                    // otherwise infer from attachment type
+                    val source = if (currentSource != NoteSource.MANUAL) {
+                        currentSource
+                    } else {
+                        when (attachment.type) {
+                            AttachmentType.AUDIO -> NoteSource.VOICE
+                            AttachmentType.IMAGE -> NoteSource.CAMERA
+                        }
+                    }
                     val note = Note(
                         id = it,
                         userId = "temp_user",
                         createdAt = System.currentTimeMillis(),
                         updatedAt = System.currentTimeMillis(),
                         rawText = _textInput.value.ifBlank { null },
-                        source = when (attachment.type) {
-                            AttachmentType.AUDIO -> NoteSource.VOICE
-                            AttachmentType.IMAGE -> NoteSource.CAMERA
-                        },
+                        source = source,
                         syncState = SyncState.LOCAL_ONLY,
                         aiState = AiState.PENDING
                     )
@@ -122,6 +134,7 @@ class CaptureViewModel @Inject constructor(
 
     fun reset() {
         currentNoteId = null
+        currentSource = NoteSource.MANUAL
         _textInput.value = ""
         _uiState.value = CaptureUiState()
     }
