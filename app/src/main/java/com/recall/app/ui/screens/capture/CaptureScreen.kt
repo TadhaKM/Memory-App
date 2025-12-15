@@ -69,16 +69,20 @@ fun CaptureScreen(
                 if (file != null) {
                     // Run OCR
                     val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                    when (val result = ocrProcessor.processImage(bitmap)) {
-                        is OcrResult.Success -> {
-                            ocrText = result.text
-                            if (result.text.isNotBlank()) {
-                                showOcrDialog = true
+                    if (bitmap != null) {
+                        when (val result = ocrProcessor.processImage(bitmap)) {
+                            is OcrResult.Success -> {
+                                ocrText = result.text
+                                if (result.text.isNotBlank()) {
+                                    showOcrDialog = true
+                                }
+                            }
+                            is OcrResult.Error -> {
+                                Timber.e("OCR failed: ${result.message}")
                             }
                         }
-                        is OcrResult.Error -> {
-                            Timber.e("OCR failed: ${result.message}")
-                        }
+                    } else {
+                        Timber.e("Failed to decode image file: ${file.absolutePath}")
                     }
 
                     // Add attachment
@@ -107,16 +111,20 @@ fun CaptureScreen(
                 if (file != null) {
                     // Run OCR
                     val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                    when (val result = ocrProcessor.processImage(bitmap)) {
-                        is OcrResult.Success -> {
-                            ocrText = result.text
-                            if (result.text.isNotBlank()) {
-                                showOcrDialog = true
+                    if (bitmap != null) {
+                        when (val result = ocrProcessor.processImage(bitmap)) {
+                            is OcrResult.Success -> {
+                                ocrText = result.text
+                                if (result.text.isNotBlank()) {
+                                    showOcrDialog = true
+                                }
+                            }
+                            is OcrResult.Error -> {
+                                Timber.e("OCR failed: ${result.message}")
                             }
                         }
-                        is OcrResult.Error -> {
-                            Timber.e("OCR failed: ${result.message}")
-                        }
+                    } else {
+                        Timber.e("Failed to decode image file: ${file.absolutePath}")
                     }
 
                     val attachment = Attachment(
