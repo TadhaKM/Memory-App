@@ -157,31 +157,31 @@ supabase.anon.key=your-anon-key
 - [x] Note detail screen (editing)
 
 ### 🔄 Milestone B - Attachments (In Progress)
-- [ ] Audio recording with MediaRecorder
-- [ ] Image capture and import
-- [ ] Attachment viewer
-- [ ] ML Kit OCR for images
+- [x] Audio recording with MediaRecorder
+- [x] Image capture and import
+- [x] Attachment viewer
+- [x] ML Kit OCR for images
 
 ### 📋 Milestone C - Supabase Sync
-- [ ] Supabase client setup
-- [ ] Authentication (email/magic link)
-- [ ] Storage upload for attachments
-- [ ] Notes sync (upsert)
-- [ ] WorkManager sync chain
+- [x] Supabase client setup
+- [x] Authentication (email/magic link)
+- [x] Storage upload for attachments
+- [x] Notes sync (upsert)
+- [x] WorkManager sync chain
 
 ### 🤖 Milestone D - AI Metadata
-- [ ] Edge Function: process-note
-- [ ] LLM classification & summarization
-- [ ] Transcription integration
-- [ ] Embeddings generation
-- [ ] AI metadata UI
+- [x] Edge Function: process-note
+- [x] LLM classification & summarization
+- [x] Transcription integration
+- [x] Embeddings generation
+- [x] AI metadata UI
 
 ### 🔍 Milestone E - Search & Recall
-- [ ] Room FTS search with filters
-- [ ] Semantic search (vector similarity)
-- [ ] Daily Recall algorithm
-- [ ] Nightly resurfacing worker
-- [ ] Notification scheduling
+- [x] Room FTS search with filters
+- [x] Semantic search (vector similarity)
+- [x] Daily Recall algorithm
+- [x] Nightly resurfacing worker
+- [x] Notification scheduling
 
 ### 🎨 Milestone F - Polish & Release
 - [ ] Export (txt/markdown)
