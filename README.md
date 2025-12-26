@@ -41,46 +41,35 @@ An Android-first, offline-first note-taking app with AI-powered organization and
 ```
 app/
 ├── core/                   # Core utilities and shared code
-│   ├── analytics/         # Sentry & PostHog integration
-│   ├── auth/              # Authentication management
-│   ├── config/            # Configuration (Supabase, etc.)
-│   ├── export/            # Note export (TXT/Markdown)
-│   ├── media/             # Audio/image handling
-│   ├── ocr/               # ML Kit text recognition
-│   ├── share/             # Share-in handler
+│   ├── auth/              # Authentication (placeholder)
+│   ├── network/           # Network configuration
 │   └── util/              # Extensions, constants, result wrapper
 ├── data/                  # Data layer
 │   ├── local/             # Room database
 │   │   ├── dao/          # Data Access Objects
 │   │   ├── entity/       # Room entities
 │   │   └── RecallDatabase.kt
-│   ├── remote/            # Supabase integration
-│   ├── preferences/       # User preferences (DataStore)
+│   ├── remote/            # Supabase integration (to be implemented)
 │   ├── repository/        # Repository implementations
 │   └── mapper/            # Entity ↔ Domain mappers
 ├── domain/                # Business logic layer
 │   ├── model/            # Domain models
 │   ├── repository/       # Repository interfaces
-│   └── usecase/          # Use cases
-├── ai/                    # AI integration
+│   └── usecase/          # Use cases (to be implemented)
+├── ai/                    # AI integration (to be implemented)
 │   ├── prompts/          # LLM prompts
-│   ├── processor/        # AI orchestration
 │   └── client/           # AI provider clients
-├── sync/                  # Background sync
+├── sync/                  # Background sync (to be implemented)
 │   ├── workers/          # WorkManager workers
-│   └── SyncScheduler.kt  # Sync scheduling
+│   └── scheduler/        # Sync scheduling
 ├── ui/                    # Presentation layer
 │   ├── navigation/       # Navigation graph
 │   ├── screens/          # Compose screens
 │   │   ├── home/         # Notes list
-│   │   ├── notedetail/   # Note editing
-│   │   ├── capture/      # Multi-input capture
-│   │   ├── search/       # Full-text + semantic search
-│   │   ├── dailyrecall/  # Intelligent resurfacing
-│   │   ├── settings/     # User preferences
-│   │   └── auth/         # Authentication
+│   │   └── notedetail/   # Note editing
 │   ├── components/       # Reusable UI components
-│   └── theme/            # Material 3 theme
+│   ├── theme/            # Material 3 theme
+│   └── viewmodel/        # ViewModels
 └── di/                    # Hilt modules
 ```
 
@@ -156,23 +145,6 @@ supabase.url=https://your-project.supabase.co
 supabase.anon.key=your-anon-key
 ```
 
-### Analytics & Crash Reporting (Optional)
-
-To enable Sentry crash reporting and PostHog analytics, update the configuration in `AnalyticsConfig.kt`:
-
-```kotlin
-object AnalyticsConfig {
-    // Get your Sentry DSN from https://sentry.io
-    const val SENTRY_DSN = "https://<public_key>@<org>.ingest.sentry.io/<project_id>"
-
-    // Get your PostHog API key from https://posthog.com
-    const val POSTHOG_API_KEY = "phc_your_api_key"
-    const val POSTHOG_HOST = "https://app.posthog.com"
-}
-```
-
-Users can enable/disable analytics and crash reporting from Settings > Privacy.
-
 ## 🛣️ Development Roadmap
 
 ### ✅ Milestone A - Core Offline Notes (COMPLETED)
@@ -184,40 +156,40 @@ Users can enable/disable analytics and crash reporting from Settings > Privacy.
 - [x] Home screen (notes list)
 - [x] Note detail screen (editing)
 
-### ✅ Milestone B - Attachments (COMPLETED)
-- [x] Audio recording with MediaRecorder
-- [x] Image capture and import
-- [x] Attachment viewer
-- [x] ML Kit OCR for images
+### 🔄 Milestone B - Attachments (In Progress)
+- [ ] Audio recording with MediaRecorder
+- [ ] Image capture and import
+- [ ] Attachment viewer
+- [ ] ML Kit OCR for images
 
-### ✅ Milestone C - Supabase Sync (COMPLETED)
-- [x] Supabase client setup
-- [x] Authentication (email/magic link)
-- [x] Storage upload for attachments
-- [x] Notes sync (upsert)
-- [x] WorkManager sync chain
+### 📋 Milestone C - Supabase Sync
+- [ ] Supabase client setup
+- [ ] Authentication (email/magic link)
+- [ ] Storage upload for attachments
+- [ ] Notes sync (upsert)
+- [ ] WorkManager sync chain
 
-### ✅ Milestone D - AI Metadata (COMPLETED)
-- [x] Edge Function: process-note
-- [x] LLM classification & summarization
-- [x] Transcription integration
-- [x] Embeddings generation
-- [x] AI metadata UI
+### 🤖 Milestone D - AI Metadata
+- [ ] Edge Function: process-note
+- [ ] LLM classification & summarization
+- [ ] Transcription integration
+- [ ] Embeddings generation
+- [ ] AI metadata UI
 
-### ✅ Milestone E - Search & Recall (COMPLETED)
-- [x] Room FTS search with filters
-- [x] Semantic search (vector similarity)
-- [x] Daily Recall algorithm
-- [x] Nightly resurfacing worker
-- [x] Notification scheduling
+### 🔍 Milestone E - Search & Recall
+- [ ] Room FTS search with filters
+- [ ] Semantic search (vector similarity)
+- [ ] Daily Recall algorithm
+- [ ] Nightly resurfacing worker
+- [ ] Notification scheduling
 
-### ✅ Milestone F - Polish & Release (COMPLETED)
-- [x] Export (txt/markdown)
-- [x] Share-in functionality
-- [x] Settings screen
-- [x] Crash reporting (Sentry)
-- [x] Analytics (PostHog)
-- [ ] Store listing & screenshots (pending)
+### 🎨 Milestone F - Polish & Release
+- [ ] Export (txt/markdown)
+- [ ] Share-in functionality
+- [ ] Settings screen
+- [ ] Crash reporting (Sentry)
+- [ ] Analytics (PostHog)
+- [ ] Store listing & screenshots
 
 ## 📝 Key Implementation Details
 
