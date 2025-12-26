@@ -1,4 +1,5 @@
 package com.recall.app.sync
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 import android.content.Context
 import androidx.work.*
@@ -15,7 +16,7 @@ import javax.inject.Singleton
 
 @Singleton
 class SyncScheduler @Inject constructor(
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) {
     private val workManager = WorkManager.getInstance(context)
 

@@ -16,16 +16,16 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object SupabaseModule {
 
-    @Provides
-    @Singleton
-    fun provideSupabaseClient(): SupabaseClient {
-        return createSupabaseClient(
-            supabaseUrl = SupabaseConfig.SUPABASE_URL,
-            supabaseKey = SupabaseConfig.SUPABASE_ANON_KEY
-        ) {
-            install(Auth)
-            install(Postgrest)
-            install(Storage)
-        }
-    }
+//    @Provides
+//    @Singleton
+//    fun provideSupabaseClient(): SupabaseClient {
+//        return createSupabaseClient(
+//            supabaseUrl = SupabaseConfig.SUPABASE_URL,
+//            supabaseKey = SupabaseConfig.SUPABASE_ANON_KEY
+//        ) {
+//            install(Auth)
+//            install(Postgrest)
+//            install(Storage)
+//        }
+//    }
 }

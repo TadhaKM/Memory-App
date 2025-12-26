@@ -7,8 +7,9 @@ import com.posthog.android.PostHogAndroidConfig
 import com.recall.app.BuildConfig
 import com.recall.app.data.preferences.UserPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.sentry.Hint
 import io.sentry.Sentry
-import io.sentry.SentryLevel
+import io.sentry.SentryEvent
 import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,22 +22,13 @@ import javax.inject.Singleton
 
 /**
  * Configuration for analytics services.
- * Replace these with your actual keys for production.
  */
 object AnalyticsConfig {
-    // Sentry DSN - get from https://sentry.io
-    // Format: https://<public_key>@<organization>.ingest.sentry.io/<project_id>
-    const val SENTRY_DSN = "" // Leave empty to disable Sentry
-
-    // PostHog API Key - get from https://posthog.com
-    const val POSTHOG_API_KEY = "" // Leave empty to disable PostHog
-    const val POSTHOG_HOST = "https://app.posthog.com" // Or your self-hosted instance
+    const val SENTRY_DSN = ""          // Leave empty to disable Sentry
+    const val POSTHOG_API_KEY = ""     // Leave empty to disable PostHog
+    const val POSTHOG_HOST = "https://app.posthog.com"
 }
 
-/**
- * Manages analytics and crash reporting services (Sentry, PostHog)
- * Respects user privacy preferences.
- */
 @Singleton
 class AnalyticsManager @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -46,32 +38,44 @@ class AnalyticsManager @Inject constructor(
 
     private var isSentryInitialized = false
     private var isPostHogInitialized = false
-    private var analyticsEnabled = true
-    private var crashReportingEnabled = true
+
+    @Volatile private var analyticsEnabled = true
+    @Volatile private var crashReportingEnabled = true
 
     /**
-     * Initialize analytics services. Should be called from Application.onCreate()
+     * Call from Application.onCreate()
      */
     fun initialize() {
+        // Initialize SDKs first (they will still be gated by keys + beforeSend / opt-out)
+        initializeSentry()
+        initializePostHog()
+
         // Listen to preference changes
         scope.launch {
             userPreferencesRepository.userPreferencesFlow.collectLatest { preferences ->
                 analyticsEnabled = preferences.enableAnalytics
                 crashReportingEnabled = preferences.enableCrashReporting
 
-                // Update Sentry status
-                if (isSentryInitialized) {
-                    Sentry.configureScope { scope ->
-                        scope.level = if (crashReportingEnabled) SentryLevel.ERROR else null
+                // PostHog: opt in/out by identifying reset + disabling capture
+                if (isPostHogInitialized) {
+                    try {
+                        if (!analyticsEnabled) {
+                            PostHog.reset()
+                            // Some versions have optOut(); some don't. Safe to ignore if missing.
+                            runCatching { PostHog.optOut() }
+                        } else {
+                            runCatching { PostHog.optIn() }
+                        }
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed updating PostHog opt-in/out")
                     }
                 }
 
-                Timber.d("Analytics preferences updated - analytics: $analyticsEnabled, crash: $crashReportingEnabled")
+                Timber.d(
+                    "Analytics preferences updated - analytics: $analyticsEnabled, crash: $crashReportingEnabled"
+                )
             }
         }
-
-        initializeSentry()
-        initializePostHog()
     }
 
     private fun initializeSentry() {
@@ -85,18 +89,18 @@ class AnalyticsManager @Inject constructor(
                 options.dsn = AnalyticsConfig.SENTRY_DSN
                 options.isDebug = BuildConfig.DEBUG
                 options.environment = if (BuildConfig.DEBUG) "development" else "production"
-                options.release = "${BuildConfig.APPLICATION_ID}@${BuildConfig.VERSION_NAME}+${BuildConfig.VERSION_CODE}"
+                options.release =
+                    "${BuildConfig.APPLICATION_ID}@${BuildConfig.VERSION_NAME}+${BuildConfig.VERSION_CODE}"
 
-                // Set sample rates
                 options.tracesSampleRate = if (BuildConfig.DEBUG) 1.0 else 0.2
                 options.profilesSampleRate = if (BuildConfig.DEBUG) 1.0 else 0.1
 
-                // Only send errors if crash reporting is enabled
-                options.beforeSend = { event ->
+                // ✅ Correct signature: (event, hint) -> SentryEvent?
+                options.beforeSend = io.sentry.SentryOptions.BeforeSendCallback { event: SentryEvent, _: Hint ->
                     if (crashReportingEnabled) event else null
                 }
 
-                // Don't send breadcrumbs in debug
+                // Avoid noisy session tracking in debug if you want
                 options.isEnableAutoSessionTracking = !BuildConfig.DEBUG
             }
 
@@ -132,45 +136,32 @@ class AnalyticsManager @Inject constructor(
         }
     }
 
-    /**
-     * Track a screen view event
-     */
     fun trackScreenView(screenName: String, properties: Map<String, Any> = emptyMap()) {
         if (!analyticsEnabled || !isPostHogInitialized) return
-
         try {
             PostHog.screen(screenName, properties)
-            Timber.d("Tracked screen view: $screenName")
         } catch (e: Exception) {
             Timber.e(e, "Failed to track screen view")
         }
     }
 
-    /**
-     * Track a custom event
-     */
     fun trackEvent(eventName: String, properties: Map<String, Any> = emptyMap()) {
         if (!analyticsEnabled || !isPostHogInitialized) return
-
         try {
-            PostHog.capture(eventName, properties = properties)
-            Timber.d("Tracked event: $eventName")
+            // ✅ Use positional args for broad compatibility (avoids "no parameter named properties")
+            PostHog.capture(eventName, null, properties)
         } catch (e: Exception) {
             Timber.e(e, "Failed to track event")
         }
     }
 
-    /**
-     * Identify the current user
-     */
-    fun identifyUser(userId: String, properties: Map<String, Any> = emptyMap()) {
+    fun identifyUser(userId: String) {
         if (!analyticsEnabled || !isPostHogInitialized) return
 
         try {
-            PostHog.identify(userId, properties = properties)
+            PostHog.identify(userId)
             Timber.d("Identified user: $userId")
 
-            // Also set user in Sentry
             if (isSentryInitialized && crashReportingEnabled) {
                 Sentry.configureScope { scope ->
                     scope.setTag("user_id", userId)
@@ -181,31 +172,18 @@ class AnalyticsManager @Inject constructor(
         }
     }
 
-    /**
-     * Reset analytics (e.g., on logout)
-     */
+
     fun reset() {
         try {
-            if (isPostHogInitialized) {
-                PostHog.reset()
-            }
-            if (isSentryInitialized) {
-                Sentry.configureScope { scope ->
-                    scope.clear()
-                }
-            }
-            Timber.d("Analytics reset")
+            if (isPostHogInitialized) PostHog.reset()
+            if (isSentryInitialized) Sentry.configureScope { it.clear() }
         } catch (e: Exception) {
             Timber.e(e, "Failed to reset analytics")
         }
     }
 
-    /**
-     * Log an exception to Sentry
-     */
     fun logException(throwable: Throwable, additionalContext: Map<String, Any> = emptyMap()) {
         if (!crashReportingEnabled || !isSentryInitialized) return
-
         try {
             Sentry.configureScope { scope ->
                 additionalContext.forEach { (key, value) ->
@@ -213,18 +191,13 @@ class AnalyticsManager @Inject constructor(
                 }
             }
             Sentry.captureException(throwable)
-            Timber.d("Logged exception to Sentry: ${throwable.message}")
         } catch (e: Exception) {
             Timber.e(e, "Failed to log exception")
         }
     }
 
-    /**
-     * Add breadcrumb for debugging
-     */
     fun addBreadcrumb(message: String, category: String = "app") {
         if (!crashReportingEnabled || !isSentryInitialized) return
-
         try {
             Sentry.addBreadcrumb(message, category)
         } catch (e: Exception) {
@@ -232,7 +205,6 @@ class AnalyticsManager @Inject constructor(
         }
     }
 
-    // Common events
     object Events {
         const val NOTE_CREATED = "note_created"
         const val NOTE_EDITED = "note_edited"
