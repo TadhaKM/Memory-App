@@ -67,7 +67,14 @@ fun AiMetadataCard(
                         )
                     }
 
-                    IconButton(onClick = { isEditing = !isEditing }) {
+                    IconButton(onClick = {
+                        if (isEditing) {
+                            onUpdateSummary(editedSummary)
+                            isEditing = false
+                        } else {
+                            isEditing = true
+                        }
+                    }) {
                         Icon(
                             if (isEditing) Icons.Default.Check else Icons.Default.Edit,
                             contentDescription = if (isEditing) "Save" else "Edit",
