@@ -265,6 +265,21 @@ class NoteRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Track user interaction to fight memory decay
+     * Called when user opens or edits a note
+     */
+    override suspend fun trackNoteInteraction(noteId: String): Result<Unit> {
+        return try {
+            resurfaceStateDao.updateLastInteraction(noteId, System.currentTimeMillis())
+            Timber.d("Tracked interaction for note: $noteId")
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Timber.e(e, "Error tracking note interaction")
+            Result.Error(e)
+        }
+    }
+
     override suspend fun getNotesPendingSync(): List<Note> {
         return try {
             // Get notes with sync state LOCAL_ONLY (0) or DIRTY (2)

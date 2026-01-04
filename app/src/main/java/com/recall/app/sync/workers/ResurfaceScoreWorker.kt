@@ -9,11 +9,22 @@ import com.recall.app.data.local.dao.ResurfaceStateDao
 import com.recall.app.data.local.dao.AttachmentDao
 import com.recall.app.data.local.dao.AiMetadataDao
 import com.recall.app.data.mapper.toDomain
-import com.recall.app.domain.usecase.CalculateResurfaceScoreUseCase
+import com.recall.app.domain.model.MemoryState
+import com.recall.app.domain.usecase.CalculateMemoryStrengthUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
 
+/**
+ * Nightly worker that calculates memory strength and state for all notes
+ *
+ * This is the heart of Adaptive Memory Decay:
+ * - Calculates resurfacing_score (for Daily Recall ranking)
+ * - Calculates memory_strength (resurfacing_score - decay_pressure)
+ * - Derives memory_state (Fresh, Condensed, Faded, Dormant)
+ *
+ * Notes that become DORMANT are excluded from Daily Recall but can still be searched.
+ */
 @HiltWorker
 class ResurfaceScoreWorker @AssistedInject constructor(
     @Assisted context: Context,
@@ -22,12 +33,12 @@ class ResurfaceScoreWorker @AssistedInject constructor(
     private val resurfaceStateDao: ResurfaceStateDao,
     private val attachmentDao: AttachmentDao,
     private val aiMetadataDao: AiMetadataDao,
-    private val calculateResurfaceScore: CalculateResurfaceScoreUseCase
+    private val calculateMemoryStrength: CalculateMemoryStrengthUseCase
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
         return try {
-            Timber.d("Starting resurface score calculation...")
+            Timber.d("Starting Adaptive Memory Decay calculation...")
 
             // Get all non-deleted, non-archived notes
             val notes = noteDao.getAllNotes(archived = false)
@@ -44,7 +55,13 @@ class ResurfaceScoreWorker @AssistedInject constructor(
                     notesList
                 }
 
-            Timber.d("Calculating scores for ${notes.size} notes")
+            Timber.d("Calculating memory strength for ${notes.size} notes")
+
+            // Track state transitions for logging
+            var freshCount = 0
+            var condensedCount = 0
+            var fadedCount = 0
+            var dormantCount = 0
 
             for (note in notes) {
                 try {
@@ -57,24 +74,42 @@ class ResurfaceScoreWorker @AssistedInject constructor(
                         continue
                     }
 
-                    // Calculate new score
-                    val newScore = calculateResurfaceScore(
+                    // Calculate memory strength (includes resurfacing score and decay)
+                    val result = calculateMemoryStrength(
                         note = note,
                         currentResurfaceScore = currentState?.score ?: 0.0,
-                        lastShownAt = currentState?.lastShownAt
+                        lastShownAt = currentState?.lastShownAt,
+                        lastInteractionAt = currentState?.lastInteractionAt
                     )
 
-                    // Update score
-                    resurfaceStateDao.updateScore(note.id, newScore)
-                    Timber.d("Updated score for note ${note.id}: $newScore")
+                    // Update both score and memory state
+                    resurfaceStateDao.updateMemoryState(
+                        noteId = note.id,
+                        score = result.resurfaceScore,
+                        memoryStrength = result.memoryStrength,
+                        memoryState = result.memoryState.name
+                    )
+
+                    // Track for summary
+                    when (result.memoryState) {
+                        MemoryState.FRESH -> freshCount++
+                        MemoryState.CONDENSED -> condensedCount++
+                        MemoryState.FADED -> fadedCount++
+                        MemoryState.DORMANT -> dormantCount++
+                    }
 
                 } catch (e: Exception) {
-                    Timber.e(e, "Error calculating score for note ${note.id}")
+                    Timber.e(e, "Error calculating memory strength for note ${note.id}")
                     // Continue with other notes
                 }
             }
 
-            Timber.d("Resurface score calculation completed")
+            Timber.d(
+                "Adaptive Memory Decay completed: " +
+                "Fresh=$freshCount, Condensed=$condensedCount, " +
+                "Faded=$fadedCount, Dormant=$dormantCount"
+            )
+
             Result.success()
 
         } catch (e: Exception) {

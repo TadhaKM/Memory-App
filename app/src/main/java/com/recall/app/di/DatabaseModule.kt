@@ -26,7 +26,8 @@ object DatabaseModule {
             RecallDatabase::class.java,
             Constants.DATABASE_NAME
         )
-            .fallbackToDestructiveMigration() // For MVP - in production, use proper migrations
+            .addMigrations(RecallDatabase.MIGRATION_1_2)
+            .fallbackToDestructiveMigration() // Fallback for any missed migrations
             .build()
     }
 

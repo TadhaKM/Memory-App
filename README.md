@@ -305,7 +305,7 @@ app/
 | D - AI Metadata Pipeline | ✅ Complete |
 | E - Search & Daily Recall | ✅ Complete |
 | F - Polish (Export, Settings, Analytics) | ✅ Complete |
-| G - Adaptive Memory Decay | 🔄 In Design |
+| G - Adaptive Memory Decay | ✅ Complete |
 
 ---
 
