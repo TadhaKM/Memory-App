@@ -5,6 +5,7 @@ import com.recall.app.ai.client.EmbeddingsClient
 import com.recall.app.ai.client.LlmClient
 import com.recall.app.ai.client.TranscriptionClient
 import com.recall.app.ai.config.AnthropicConfig
+import com.recall.app.core.security.RateLimiter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,16 +13,24 @@ import dagger.hilt.components.SingletonComponent
 import timber.log.Timber
 import javax.inject.Singleton
 
+/**
+ * SECURITY: AI Module with rate limiting and secure configuration
+ *
+ * All AI clients are configured with:
+ * - Rate limiting to prevent API abuse (provided by SecurityModule)
+ * - Secure API key loading from BuildConfig
+ * - Graceful degradation when not configured
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object AiModule {
 
     @Provides
     @Singleton
-    fun provideLlmClient(): LlmClient? {
+    fun provideLlmClient(rateLimiter: RateLimiter): LlmClient? {
         return if (AnthropicConfig.isConfigured()) {
             Timber.d("Anthropic API configured, enabling AI features")
-            AnthropicLlmClient()
+            AnthropicLlmClient(rateLimiter)
         } else {
             Timber.d("Anthropic API not configured, AI features disabled")
             null // Graceful degradation - app works without AI
