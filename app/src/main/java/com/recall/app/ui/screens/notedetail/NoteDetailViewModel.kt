@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.recall.app.core.export.NoteExporter
+import com.recall.app.domain.model.AiMetadata
 import com.recall.app.domain.model.Note
 import com.recall.app.domain.model.SyncState
 import com.recall.app.domain.repository.NoteRepository
@@ -97,6 +98,24 @@ class NoteDetailViewModel @Inject constructor(
             noteExporter.getNoteAsText(currentState.note)
         } else {
             null
+        }
+    }
+
+    fun updateAiMetadataSummary(summary: String) {
+        val currentState = _uiState.value
+        if (currentState is NoteDetailUiState.Success) {
+            viewModelScope.launch {
+                val currentMetadata = currentState.note.aiMetadata
+                val updatedMetadata = if (currentMetadata != null) {
+                    currentMetadata.copy(summary = summary.ifBlank { null })
+                } else {
+                    AiMetadata(
+                        noteId = noteId,
+                        summary = summary.ifBlank { null }
+                    )
+                }
+                noteRepository.updateAiMetadata(updatedMetadata)
+            }
         }
     }
 }

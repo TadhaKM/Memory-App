@@ -157,7 +157,7 @@ fun NoteDetailScreen(
                     note = state.note,
                     onTextChanged = { viewModel.updateNoteText(it) },
                     onReRunAi = { /* TODO: Implement re-run AI */ },
-                    onUpdateSummary = { /* TODO: Implement update summary */ },
+                    onUpdateSummary = { viewModel.updateAiMetadataSummary(it) },
                     onUpdateType = { /* TODO: Implement update type */ },
                     onToggleActionItem = { _, _ -> /* TODO: Implement toggle action item */ },
                     modifier = Modifier.padding(paddingValues)

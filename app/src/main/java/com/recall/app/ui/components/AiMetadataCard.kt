@@ -67,7 +67,7 @@ fun AiMetadataCard(
                         )
                     }
 
-                        IconButton(onClick = {
+                    IconButton(onClick = {
                         if (isEditing) {
                             onUpdateSummary(editedSummary)
                             isEditing = false
