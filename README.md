@@ -1,103 +1,123 @@
 # Recall
 
-**The note app that remembers for you.**
+<p align="center">
+  <strong>The note app that remembers for you.</strong>
+</p>
 
-Capture anything. Let AI organize it. Watch the right notes resurface at the right time.
+<p align="center">
+  Capture anything. Let AI organize it. Watch the right notes resurface at the right time.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Platform-Android-green?style=flat-square" alt="Platform" />
+  <img src="https://img.shields.io/badge/Kotlin-1.9-purple?style=flat-square" alt="Kotlin" />
+  <img src="https://img.shields.io/badge/Jetpack%20Compose-Material%203-blue?style=flat-square" alt="Compose" />
+  <img src="https://img.shields.io/badge/Min%20SDK-26-orange?style=flat-square" alt="Min SDK" />
+</p>
 
 ---
 
-## The Philosophy
+## Table of Contents
+
+- [Philosophy](#philosophy)
+- [Features](#features)
+- [How It Works](#how-it-works)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
+- [Project Structure](#project-structure)
+- [Architecture](#architecture)
+- [Testing](#testing)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Philosophy
 
 > **Information should fade by default — only ideas that prove their value deserve permanence.**
 
-**Notion assumes:** "Everything is equally important forever."
+| Traditional Note Apps | Recall |
+|-----------------------|--------|
+| Everything is equally important forever | Most thoughts are temporary — the system decides what survives |
+| You organize everything manually | AI organizes, you just capture |
+| Notes sit forgotten in folders | Important ideas resurface automatically |
+| Filing cabinet | Living memory |
 
-**Recall assumes:** "Most thoughts are temporary — the system decides what survives."
-
-That philosophical difference is everything.
-
----
-
-## What Makes Recall Different
-
-### Adaptive Memory Decay + Resurfacing
-
-This is not a "feature" — it's a foundational behavior that puts Recall in a category Notion cannot enter.
-
-**What "Memory Decay" Actually Means:**
-
-- ❌ Not deletion
-- ❌ Not hiding
-- ❌ Not archiving
-- ✅ **Progressive loss of detail, not existence**
-
-Think human memory:
-- You remember that *something* mattered
-- You forget the exact wording
-- Unless you revisit it
+**That philosophical difference is everything.**
 
 ---
 
-## The 4 Memory States
+## Features
+
+### Multi-Modal Capture
+
+| Mode | Description |
+|------|-------------|
+| **Text** | Type with auto-save (600ms debounce) |
+| **Voice** | Record audio → automatic transcription |
+| **Camera** | Take photos → ML Kit OCR extracts text |
+| **Share** | Share from any app directly into Recall |
+
+### AI-Powered Organization
+
+When you save a note, it flows through an intelligent pipeline:
+
+```
+Input (text/voice/image)
+       ↓
+   Transcription (audio → text)
+       ↓
+   OCR (image → text via ML Kit)
+       ↓
+   LLM Analysis (Claude Haiku)
+       ↓
+   Summary + Type + Topics + Entities + Action Items
+       ↓
+   Stored & Indexed
+```
+
+Notes are auto-categorized as:
+- **Task** — Action items detected
+- **Idea** — Creative thoughts (boosted after 21 days for incubation)
+- **Reference** — Information to look up later
+- **Journal** — Personal reflections
+- **Question** — Things to explore
+- **Quote** — Words from others
+
+### Adaptive Memory Decay
 
 Every note moves through four cognitive states over time:
 
-| State | What User Sees | Purpose |
-|-------|----------------|---------|
-| **Fresh** | Full note + transcript + OCR | Capture |
-| **Condensed** | Summary + key entities | Compression |
-| **Faded** | Title + 1-line essence | Signal |
-| **Dormant** | Invisible unless searched | Silence |
+| State | Memory Strength | What User Sees |
+|-------|-----------------|----------------|
+| **Fresh** | > 3.0 | Full note + transcript + OCR |
+| **Condensed** | 2.0 – 3.0 | Summary + key entities |
+| **Faded** | 1.0 – 2.0 | Title + 1-line essence |
+| **Dormant** | < 1.0 | Invisible unless searched |
 
-Notes **earn their way upward** by interaction or relevance.
+**Memory Strength Formula:**
+```
+memory_strength = resurfacing_score - decay_pressure(time)
 
----
+decay_pressure = days_since_last_interaction × 0.03
+```
 
-## How Notes "Earn" Attention
-
-### Positive Signals (Fight Decay)
-- User opens note
-- User edits note
-- User pins / promotes
+Notes **earn their way upward** through:
+- User opens/edits note
+- User pins or promotes
 - AI detects relevance to recent notes
 - Appears in Daily Recall and isn't dismissed
 
-### Negative Signals (Accelerate Decay)
+Notes **fade faster** when:
 - Ignored when resurfaced
 - Explicitly dismissed
 - No semantic connections over time
-- Marked "not relevant anymore"
 
-This is **reinforcement learning**, not rules.
+### Daily Recall
 
----
-
-## Memory Strength Algorithm
-
-```
-memory_strength =
-    resurfacing_score
-  + engagement_score
-  + semantic_reinforcement
-  - decay_pressure(time)
-```
-
-| Memory Strength | State |
-|-----------------|-------|
-| > 3.5 | Fresh |
-| 2.0 – 3.5 | Condensed |
-| 1.0 – 2.0 | Faded |
-| < 1.0 | Dormant |
-
-This means:
-- A resurfaced note that gets **ignored** still fades
-- A rarely surfaced note that becomes **relevant** revives
-
----
-
-## Daily Recall UX
-
-This must feel **calm, not scary**.
+A calm, non-intrusive way to reconnect with your past thoughts:
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -110,75 +130,32 @@ This must feel **calm, not scary**.
 └─────────────────────────────────────────────┘
 ```
 
-No warnings. No drama.
-
----
-
-## Recovery Is Always Possible (Trust Rule)
-
-At any time, the user can:
-- Search
-- Restore full note
-- Pin permanently
-- Export
-
-**Nothing is ever destroyed without consent.**
-
-This preserves psychological safety.
-
----
-
-## Core Features
-
-### Multi-Modal Capture
-- **Text** — Type with auto-save (600ms debounce)
-- **Voice** — Record audio → automatic transcription
-- **Camera** — Take photos → ML Kit OCR extracts text
-- **Share** — Share from any app directly into Recall
-
-### AI Processing Pipeline
-When you save a note, it flows through:
-
-```
-Input (text/voice/image)
-       ↓
-   Transcription (audio → text)
-       ↓
-   OCR (image → text via ML Kit)
-       ↓
-   LLM Analysis (Claude)
-       ↓
-   Summary + Type + Topics + Entities + Action Items
-       ↓
-   Embeddings (vector for semantic search)
-       ↓
-   Stored in ai_metadata
-```
-
-### Intelligent Classification
-Notes are auto-categorized as:
-- **Task** — Action items detected
-- **Idea** — Creative thoughts (boosted after 21 days for incubation)
-- **Reference** — Information to look up later
-- **Journal** — Personal reflections
-- **Question** — Things to explore
-- **Quote** — Words from others
-
 ### Smart Search
+
 - Full-text search (Room FTS4)
 - Semantic search via embeddings
 - Filters: type, attachments, date range, archived
 
 ### Export
+
 - TXT or Markdown format
 - Includes all metadata, transcripts, OCR text
 - Share directly to other apps
 
+### Security
+
+- **No hardcoded API keys** — loaded from `local.properties` via BuildConfig
+- **Rate limiting** — Token bucket algorithm for all API calls
+- **Input validation** — OWASP-compliant sanitization
+- **Secure logging** — No PII or secrets logged
+
 ---
 
-## Resurfacing Algorithm
+## How It Works
 
-Nightly job (2:30 AM) calculates score per note:
+### Resurfacing Algorithm
+
+A nightly job (2:30 AM) calculates a resurfacing score for each note:
 
 ```
 Base:     random(0..1)
@@ -194,135 +171,327 @@ Modifiers:
   -∞      if marked "never resurface"
 ```
 
-Top 3-7 notes shown daily. Dismissed notes fade faster.
+Top 3-7 notes shown daily. Dormant notes (memory_strength < 1.0) are excluded.
+
+### Trust Rule
+
+At any time, the user can:
+- Search for any note (including dormant)
+- Restore full note detail
+- Pin permanently
+- Export everything
+
+**Nothing is ever destroyed without consent.**
 
 ---
 
 ## Tech Stack
 
 ### Android
-- Kotlin + Jetpack Compose + Material 3
-- MVVM + Clean Architecture + Repository Pattern
-- Hilt (DI), Room (local DB), DataStore (preferences)
-- WorkManager (background sync, AI processing, nightly jobs)
-- OkHttp/Retrofit, Kotlinx Serialization
-- ML Kit (on-device OCR)
+
+| Technology | Purpose |
+|------------|---------|
+| Kotlin | Language |
+| Jetpack Compose | UI Framework |
+| Material 3 | Design System |
+| Hilt | Dependency Injection |
+| Room | Local Database |
+| DataStore | Preferences |
+| WorkManager | Background Jobs |
+| OkHttp/Retrofit | Networking |
+| ML Kit | On-device OCR |
 
 ### Backend
-- Supabase (Auth, Postgres, Storage)
-- PostgreSQL with Row Level Security
-- pgvector for embeddings
+
+| Technology | Purpose |
+|------------|---------|
+| Supabase | Auth, Database, Storage |
+| PostgreSQL | Primary Database |
+| Row Level Security | Data Protection |
+| pgvector | Embeddings Storage |
 
 ### AI
-- Anthropic Claude (Haiku) — classification, summarization
-- Google ML Kit — OCR (on-device)
-- Embeddings for semantic search
 
----
-
-## Security
-
-- **No hardcoded API keys** — loaded from `local.properties` via BuildConfig
-- **Rate limiting** — Token bucket algorithm for all API calls
-- **Input validation** — OWASP-compliant sanitization
-- **Secure logging** — No PII or secrets logged
-
----
-
-## Project Structure
-
-```
-app/
-├── core/
-│   ├── auth/           # Supabase authentication
-│   ├── security/       # Rate limiter, input validator, config
-│   ├── analytics/      # PostHog + Sentry
-│   └── util/           # Extensions, constants
-├── data/
-│   ├── local/          # Room database, DAOs, entities
-│   ├── remote/         # Supabase DTOs
-│   ├── repository/     # Repository implementations
-│   └── mapper/         # Entity ↔ Domain mappers
-├── domain/
-│   ├── model/          # Note, Attachment, AiMetadata, etc.
-│   ├── repository/     # Repository interfaces
-│   └── usecase/        # CalculateResurfaceScore, SearchNotes
-├── ai/
-│   ├── client/         # AnthropicLlmClient, EmbeddingsClient
-│   ├── config/         # AnthropicConfig
-│   ├── processor/      # NoteProcessor
-│   └── prompts/        # AiPrompts
-├── sync/
-│   ├── workers/        # Upload, Sync, ProcessAi, Resurface
-│   └── SyncScheduler.kt
-├── ui/
-│   ├── screens/        # Home, Capture, NoteDetail, DailyRecall, Search, Settings
-│   ├── components/     # Reusable Compose components
-│   ├── theme/          # Colors, Typography, Theme
-│   └── navigation/     # NavGraph, Screen definitions
-└── di/                 # Hilt modules
-```
+| Technology | Purpose |
+|------------|---------|
+| Anthropic Claude (Haiku) | Classification, Summarization |
+| Google ML Kit | On-device OCR |
+| Embeddings | Semantic Search |
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
-- Android Studio Hedgehog+
+
+- Android Studio Hedgehog (2023.1.1) or later
 - JDK 17+
 - Android SDK 26+ (min), 34 (target)
 
-### Setup
+### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/your-username/Memory-App.git
    cd Memory-App
    ```
 
 2. **Configure API keys**
    ```bash
    cp local.properties.example local.properties
-   # Edit local.properties with your keys:
-   # SUPABASE_URL=https://your-project.supabase.co
-   # SUPABASE_ANON_KEY=your-anon-key
-   # ANTHROPIC_API_KEY=sk-ant-your-key
    ```
 
-3. **Open in Android Studio & Sync Gradle**
+3. **Edit `local.properties`** with your credentials (see [Configuration](#configuration))
 
-4. **Run the app** (▶️ or Shift+F10)
+4. **Open in Android Studio** and sync Gradle
 
----
-
-## Development Status
-
-| Milestone | Status |
-|-----------|--------|
-| A - Core Offline Notes | ✅ Complete |
-| B - Attachments (Audio/Image/OCR) | ✅ Complete |
-| C - Supabase Sync | ✅ Complete |
-| D - AI Metadata Pipeline | ✅ Complete |
-| E - Search & Daily Recall | ✅ Complete |
-| F - Polish (Export, Settings, Analytics) | ✅ Complete |
-| G - Adaptive Memory Decay | ✅ Complete |
+5. **Run the app** (▶️ or `Shift+F10`)
 
 ---
 
-## The Vision
+## Configuration
 
-Most note apps are **filing cabinets** — you put things in, they stay exactly where you left them, and you forget they exist.
+Create a `local.properties` file in the project root with the following:
 
-Recall is a **living memory** — it breathes, it forgets, it reminds. Ideas that matter float to the surface. Thoughts that served their purpose gracefully fade.
+| Variable | Required | Description | Source |
+|----------|----------|-------------|--------|
+| `SUPABASE_URL` | Yes | Your Supabase project URL | [Supabase Dashboard](https://supabase.com/dashboard) → Settings → API |
+| `SUPABASE_ANON_KEY` | Yes | Supabase anonymous key | Same as above |
+| `ANTHROPIC_API_KEY` | No* | Anthropic API key for AI features | [Anthropic Console](https://console.anthropic.com/) |
+| `POSTHOG_API_KEY` | No | PostHog analytics key | [PostHog](https://posthog.com/) |
+| `SENTRY_DSN` | No | Sentry error tracking DSN | [Sentry](https://sentry.io/) |
 
-You don't manage your notes. **Your notes manage themselves.**
+*Without Anthropic API key, AI features (auto-categorization, summaries) will be disabled but the app remains fully functional.
+
+**Example `local.properties`:**
+```properties
+sdk.dir=/path/to/android/sdk
+
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ANTHROPIC_API_KEY=sk-ant-api03-...
+```
 
 ---
 
-## One-Line Pitch
+## Project Structure
 
-> **Recall**: Capture anything, let AI organize it, watch forgotten ideas resurface when they matter.
+```
+app/src/main/java/com/recall/app/
+├── core/
+│   ├── auth/           # Supabase authentication (AuthManager)
+│   ├── security/       # Rate limiter, input validator, config
+│   ├── analytics/      # PostHog + Sentry integration
+│   ├── export/         # Note export functionality
+│   ├── media/          # Audio recording, image handling
+│   ├── ocr/            # ML Kit OCR processing
+│   ├── share/          # Share intent handling
+│   └── util/           # Extensions, constants, Result type
+├── data/
+│   ├── local/          # Room database, DAOs, entities
+│   ├── remote/         # Supabase data sources, DTOs
+│   ├── repository/     # Repository implementations
+│   ├── mapper/         # Entity ↔ Domain mappers
+│   └── preferences/    # DataStore preferences
+├── domain/
+│   ├── model/          # Note, Attachment, AiMetadata, MemoryState
+│   ├── repository/     # Repository interfaces
+│   └── usecase/        # Business logic (ResurfaceScore, MemoryStrength, Search)
+├── ai/
+│   ├── client/         # LLM clients (Anthropic, Embeddings, Transcription)
+│   ├── config/         # API configuration
+│   ├── processor/      # Note processing pipeline
+│   └── prompts/        # AI prompt templates
+├── sync/
+│   ├── workers/        # WorkManager jobs (Sync, Upload, AI, Resurface)
+│   └── SyncScheduler   # Job scheduling
+├── ui/
+│   ├── screens/        # Compose screens (Home, Capture, Detail, DailyRecall, Search, Settings)
+│   ├── components/     # Reusable UI components
+│   ├── theme/          # Material 3 theming
+│   └── navigation/     # Navigation graph
+├── di/                 # Hilt dependency injection modules
+├── MainActivity.kt
+└── RecallApplication.kt
+```
 
 ---
 
-**Built with Kotlin & Jetpack Compose**
+## Architecture
+
+Recall follows **Clean Architecture** with **MVVM** pattern:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                         UI Layer                         │
+│  (Compose Screens, ViewModels, Navigation)              │
+└─────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│                      Domain Layer                        │
+│  (Use Cases, Repository Interfaces, Domain Models)      │
+└─────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│                       Data Layer                         │
+│  (Repository Impl, Room DB, Supabase, DataStore)        │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Key Principles:**
+- **Unidirectional Data Flow** — State flows down, events flow up
+- **Single Source of Truth** — Room database for local data
+- **Offline-First** — Full functionality without network
+- **Dependency Injection** — Hilt for testability
+
+---
+
+## Testing
+
+### Build the App
+
+```bash
+./gradlew assembleDebug
+```
+
+### Run Unit Tests
+
+```bash
+./gradlew test
+```
+
+### Run Instrumented Tests
+
+```bash
+./gradlew connectedAndroidTest
+```
+
+### Manual Testing Checklist
+
+| Feature | How to Test |
+|---------|-------------|
+| Note Creation | Create text/voice/image notes, verify they save |
+| Daily Recall | Notes should appear in resurface feed |
+| Memory States | New notes start as "Fresh" (strength 3.0) |
+| Interaction Tracking | View/edit a note — should reset decay timer |
+| AI Features | Requires Anthropic key — check auto-categorization |
+| Search | Search by text, filter by type |
+| Export | Export note as TXT/Markdown |
+| Sync | Sign in with Supabase, notes sync across devices |
+
+### Testing Memory Decay
+
+Memory decay runs nightly via WorkManager. To test faster:
+
+1. Create several notes
+2. Check their initial `memory_state` is `FRESH`
+3. Trigger the worker manually in debug mode
+4. Or temporarily increase `DECAY_RATE_PER_DAY` in `CalculateMemoryStrengthUseCase.kt`
+
+---
+
+## Troubleshooting
+
+### Build Issues
+
+**Problem:** Gradle sync fails
+```
+Solution: File → Invalidate Caches → Restart
+```
+
+**Problem:** SDK location not found
+```
+Solution: Add sdk.dir=/path/to/android/sdk to local.properties
+```
+
+### Runtime Issues
+
+**Problem:** App crashes on startup
+```
+Check: Ensure SUPABASE_URL and SUPABASE_ANON_KEY are set in local.properties
+```
+
+**Problem:** AI features not working
+```
+Check: Ensure ANTHROPIC_API_KEY is set (AI features gracefully degrade without it)
+```
+
+**Problem:** Notes not syncing
+```
+Check:
+1. User is signed in
+2. Network connection available
+3. Supabase project is active
+```
+
+### Common Errors
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `Rate limit exceeded` | Too many API calls | Wait and retry (automatic backoff) |
+| `Invalid API key` | Wrong/expired key | Regenerate key in respective console |
+| `Database migration failed` | Schema mismatch | Clear app data or reinstall |
+
+---
+
+## Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+### Getting Started
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes
+4. Run tests: `./gradlew test`
+5. Commit with clear messages: `git commit -m "feat: Add your feature"`
+6. Push to your fork: `git push origin feature/your-feature`
+7. Open a Pull Request
+
+### Commit Convention
+
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+
+| Type | Description |
+|------|-------------|
+| `feat:` | New feature |
+| `fix:` | Bug fix |
+| `docs:` | Documentation |
+| `style:` | Formatting (no code change) |
+| `refactor:` | Code restructuring |
+| `test:` | Adding tests |
+| `chore:` | Maintenance |
+
+### Code Style
+
+- Follow [Kotlin Coding Conventions](https://kotlinlang.org/docs/coding-conventions.html)
+- Use meaningful variable/function names
+- Keep functions small and focused
+- Add KDoc for public APIs
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Acknowledgments
+
+- [Jetpack Compose](https://developer.android.com/jetpack/compose) — Modern Android UI
+- [Supabase](https://supabase.com/) — Open source Firebase alternative
+- [Anthropic](https://www.anthropic.com/) — Claude AI models
+- [Google ML Kit](https://developers.google.com/ml-kit) — On-device ML
+
+---
+
+<p align="center">
+  <strong>Built with ❤️ using Kotlin & Jetpack Compose</strong>
+</p>
+
+<p align="center">
+  <em>You don't manage your notes. Your notes manage themselves.</em>
+</p>
