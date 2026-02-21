@@ -1,8 +1,5 @@
--- Recall App Database Schema for Supabase
+-- Recall App Database Schema (without pgvector)
 -- Run this in Supabase SQL Editor
-
--- Enable pgvector extension for embeddings
-CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Notes table
 CREATE TABLE IF NOT EXISTS notes (
@@ -34,7 +31,7 @@ CREATE TABLE IF NOT EXISTS attachments (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- AI Metadata table
+-- AI Metadata table (without vector embedding)
 CREATE TABLE IF NOT EXISTS ai_metadata (
     note_id UUID PRIMARY KEY REFERENCES notes(id) ON DELETE CASCADE,
     summary TEXT,
@@ -44,7 +41,6 @@ CREATE TABLE IF NOT EXISTS ai_metadata (
     action_items JSONB DEFAULT '[]'::jsonb,
     transcript TEXT,
     ocr_text TEXT,
-    embedding vector(1536),
     processed_at TIMESTAMPTZ
 );
 
@@ -67,20 +63,31 @@ ALTER TABLE attachments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_metadata ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resurface_state ENABLE ROW LEVEL SECURITY;
 
--- Notes policies
+-- RLS Policies
 CREATE POLICY "Users can access own notes" ON notes FOR ALL USING (auth.uid() = user_id);
 
--- Attachments policies
 CREATE POLICY "Users can access own attachments" ON attachments FOR ALL USING (
     EXISTS (SELECT 1 FROM notes WHERE notes.id = attachments.note_id AND notes.user_id = auth.uid())
 );
 
--- AI Metadata policies
 CREATE POLICY "Users can access own ai_metadata" ON ai_metadata FOR ALL USING (
     EXISTS (SELECT 1 FROM notes WHERE notes.id = ai_metadata.note_id AND notes.user_id = auth.uid())
 );
 
--- Resurface policies
 CREATE POLICY "Users can access own resurface" ON resurface_state FOR ALL USING (
     EXISTS (SELECT 1 FROM notes WHERE notes.id = resurface_state.note_id AND notes.user_id = auth.uid())
 );
+
+-- Updated_at trigger
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_notes_updated_at
+    BEFORE UPDATE ON notes
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();

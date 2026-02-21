@@ -12,6 +12,7 @@ import com.recall.app.ui.screens.capture.CaptureScreen
 import com.recall.app.ui.screens.dailyrecall.DailyRecallScreen
 import com.recall.app.ui.screens.home.HomeScreen
 import com.recall.app.ui.screens.notedetail.NoteDetailScreen
+import com.recall.app.ui.screens.onboarding.OnboardingScreen
 import com.recall.app.ui.screens.search.SearchScreen
 import com.recall.app.ui.screens.settings.SettingsScreen
 
@@ -20,12 +21,24 @@ fun RecallNavGraph(
     navController: NavHostController = rememberNavController(),
     startDestination: String = Screen.Home.route,
     sharedText: String? = null,
-    sharedImageUris: List<Uri> = emptyList()
+    sharedImageUris: List<Uri> = emptyList(),
+    onOnboardingComplete: () -> Unit = {}
 ) {
     NavHost(
         navController = navController,
         startDestination = startDestination
     ) {
+        composable(Screen.Onboarding.route) {
+            OnboardingScreen(
+                onGetStarted = {
+                    onOnboardingComplete()
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(Screen.Home.route) {
             HomeScreen(
                 onNavigateToNoteDetail = { noteId ->

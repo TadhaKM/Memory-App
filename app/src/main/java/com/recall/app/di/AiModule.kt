@@ -1,39 +1,54 @@
 package com.recall.app.di
 
+import com.recall.app.ai.client.AnthropicLlmClient
 import com.recall.app.ai.client.EmbeddingsClient
 import com.recall.app.ai.client.LlmClient
 import com.recall.app.ai.client.TranscriptionClient
+import com.recall.app.ai.config.AnthropicConfig
+import com.recall.app.core.security.RateLimiter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import timber.log.Timber
 import javax.inject.Singleton
 
+/**
+ * SECURITY: AI Module with rate limiting and secure configuration
+ *
+ * All AI clients are configured with:
+ * - Rate limiting to prevent API abuse (provided by SecurityModule)
+ * - Secure API key loading from BuildConfig
+ * - Graceful degradation when not configured
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object AiModule {
 
     @Provides
     @Singleton
-    fun provideLlmClient(): LlmClient? {
-        // TODO: Return actual implementation when AI provider is configured
-        // Example: return OpenAiLlmClient(apiKey)
-        return null // Graceful degradation - app works without AI
+    fun provideLlmClient(rateLimiter: RateLimiter): LlmClient? {
+        return if (AnthropicConfig.isConfigured()) {
+            Timber.d("Anthropic API configured, enabling AI features")
+            AnthropicLlmClient(rateLimiter)
+        } else {
+            Timber.d("Anthropic API not configured, AI features disabled")
+            null // Graceful degradation - app works without AI
+        }
     }
 
     @Provides
     @Singleton
     fun provideEmbeddingsClient(): EmbeddingsClient? {
-        // TODO: Return actual implementation when embeddings provider is configured
-        // Example: return OpenAiEmbeddingsClient(apiKey)
-        return null // Graceful degradation
+        // Anthropic doesn't provide embeddings API
+        // Could add OpenAI or Voyage AI embeddings later
+        return null
     }
 
     @Provides
     @Singleton
     fun provideTranscriptionClient(): TranscriptionClient? {
-        // TODO: Return actual implementation when transcription provider is configured
-        // Example: return WhisperTranscriptionClient(apiKey)
-        return null // Graceful degradation
+        // Could add Whisper API integration later
+        return null
     }
 }

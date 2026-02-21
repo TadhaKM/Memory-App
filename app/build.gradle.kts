@@ -1,9 +1,30 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
     kotlin("plugin.serialization") version "1.9.22"
+}
+
+// =============================================================================
+// SECURITY: Load API keys from local.properties (gitignored)
+// This ensures sensitive keys are never committed to version control.
+// See local.properties.example for required keys.
+// =============================================================================
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        load(localPropertiesFile.inputStream())
+    }
+}
+
+// Helper function to get property with fallback to environment variable
+fun getSecureProperty(key: String, defaultValue: String = ""): String {
+    return localProperties.getProperty(key)
+        ?: System.getenv(key)
+        ?: defaultValue
 }
 
 android {
@@ -26,6 +47,17 @@ android {
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
+
+        // =============================================================================
+        // SECURITY: API keys injected via BuildConfig from local.properties
+        // Keys are read at build time and compiled into the app.
+        // In production, use a secrets management solution or backend proxy.
+        // =============================================================================
+        buildConfigField("String", "SUPABASE_URL", "\"${getSecureProperty("SUPABASE_URL", "")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${getSecureProperty("SUPABASE_ANON_KEY", "")}\"")
+        buildConfigField("String", "ANTHROPIC_API_KEY", "\"${getSecureProperty("ANTHROPIC_API_KEY", "")}\"")
+        buildConfigField("String", "POSTHOG_API_KEY", "\"${getSecureProperty("POSTHOG_API_KEY", "")}\"")
+        buildConfigField("String", "SENTRY_DSN", "\"${getSecureProperty("SENTRY_DSN", "")}\"")
     }
 
     buildTypes {

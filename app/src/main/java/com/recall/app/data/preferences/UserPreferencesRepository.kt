@@ -14,6 +14,9 @@ import javax.inject.Singleton
  * User preferences stored in DataStore
  */
 data class UserPreferences(
+    // Onboarding
+    val hasSeenOnboarding: Boolean = false,
+
     // Appearance
     val darkMode: DarkModeOption = DarkModeOption.SYSTEM,
 
@@ -55,6 +58,7 @@ class UserPreferencesRepository @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) {
     private object PreferencesKeys {
+        val HAS_SEEN_ONBOARDING = booleanPreferencesKey("has_seen_onboarding")
         val DARK_MODE = stringPreferencesKey("dark_mode")
         val AUTO_SYNC = booleanPreferencesKey("auto_sync")
         val SYNC_ON_WIFI_ONLY = booleanPreferencesKey("sync_on_wifi_only")
@@ -85,6 +89,7 @@ class UserPreferencesRepository @Inject constructor(
 
     private fun mapPreferences(preferences: Preferences): UserPreferences {
         return UserPreferences(
+            hasSeenOnboarding = preferences[PreferencesKeys.HAS_SEEN_ONBOARDING] ?: false,
             darkMode = preferences[PreferencesKeys.DARK_MODE]?.let {
                 try { DarkModeOption.valueOf(it) } catch (e: Exception) { DarkModeOption.SYSTEM }
             } ?: DarkModeOption.SYSTEM,
@@ -103,6 +108,12 @@ class UserPreferencesRepository @Inject constructor(
                 try { ExportFormatOption.valueOf(it) } catch (e: Exception) { ExportFormatOption.MARKDOWN }
             } ?: ExportFormatOption.MARKDOWN
         )
+    }
+
+    suspend fun updateHasSeenOnboarding(seen: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.HAS_SEEN_ONBOARDING] = seen
+        }
     }
 
     suspend fun updateDarkMode(darkMode: DarkModeOption) {

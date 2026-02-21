@@ -30,11 +30,17 @@ interface NoteRepository {
     fun searchNotes(query: String, archived: Boolean = false): Flow<List<Note>>
     fun searchNotesByType(query: String, type: NoteType, archived: Boolean = false): Flow<List<Note>>
 
-    // Resurfacing
+    // Resurfacing & Memory Decay
     suspend fun getTopResurfaceNotes(limit: Int): List<Note>
     suspend fun updateResurfaceScore(noteId: String, score: Double): Result<Unit>
     suspend fun updateNeverResurface(noteId: String, never: Boolean): Result<Unit>
     suspend fun markResurfaceShown(noteId: String): Result<Unit>
+
+    /**
+     * Track user interaction with a note (open/edit)
+     * This fights memory decay - interacted notes stay fresh
+     */
+    suspend fun trackNoteInteraction(noteId: String): Result<Unit>
 
     // Sync
     suspend fun getNotesPendingSync(): List<Note>
